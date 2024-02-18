@@ -9,20 +9,20 @@ module.exports = {
    */
   dev: {
     frontend: {
-      directory: './frontend',
-      cmd: 'npm',
-      args: ['run', 'dev'],
-      protocol: 'http://',
-      hostname: 'localhost',
+      directory: "./frontend",
+      cmd: "npm",
+      args: ["run", "dev"],
+      protocol: "http://",
+      hostname: "localhost",
       port: 8080,
-      indexPath: 'index.html'
+      indexPath: "index.html",
     },
     electron: {
-      directory: './',
-      cmd: 'electron',
-      args: ['.', '--env=local'],
-      loadingPage: '/public/html/loading.html',
-    }
+      directory: "./",
+      cmd: "electron",
+      args: [".", "--env=local"],
+      loadingPage: "/public/html/loading.html",
+    },
   },
 
   /**
@@ -31,83 +31,83 @@ module.exports = {
    */
   build: {
     frontend: {
-      directory: './frontend',
-      cmd: 'npm',
-      args: ['run', 'build'],
+      directory: "./frontend",
+      cmd: "npm",
+      args: ["run", "build"],
     },
     go_build_w: {
-      directory: './go',
-      cmd: 'go',
-      args: ['build', '-o=../build/extraResources/goapp.exe'],
+      directory: "./go",
+      cmd: "go",
+      args: ["build", "-o=../build/extraResources/goapp.exe"],
     },
     go_build_m: {
-      directory: './go',
-      cmd: 'go',
-      args: ['build', '-o=../build/extraResources/goapp'],
+      directory: "./go",
+      cmd: "go",
+      args: ["build", "-o=../build/extraResources/goapp"],
     },
     go_build_l: {
-      directory: './go',
-      cmd: 'go',
-      args: ['build', '-o=../build/extraResources/goapp'],
-    }
+      directory: "./go",
+      cmd: "go",
+      args: ["build", "-o=../build/extraResources/goapp"],
+    },
   },
 
   /**
    * 移动资源
-   * ee-bin move 
+   * ee-bin move
    */
   move: {
     frontend_dist: {
-      dist: './frontend/dist',
-      target: './public/dist'
+      dist: "./frontend/dist",
+      target: "./public/dist",
     },
     go_static: {
-      dist: './frontend/dist',
-      target: './go/public/dist'
+      dist: "./frontend/dist",
+      target: "./go/public/dist",
     },
     go_config: {
-      dist: './go/config',
-      target: './go/public/config'
+      dist: "./go/config",
+      target: "./go/public/config",
     },
     go_package: {
-      dist: './package.json',
-      target: './go/public/package.json'
+      dist: "./package.json",
+      target: "./go/public/package.json",
     },
     go_images: {
-      dist: './public/images',
-      target: './go/public/images'
-    }
-  },  
+      dist: "./public/images",
+      target: "./go/public/images",
+    },
+  },
 
   /**
    * 预发布模式（prod）
    * ee-bin start
    */
   start: {
-    directory: './',
-    cmd: 'electron',
-    args: ['.', '--env=prod']
+    directory: "./",
+    cmd: "electron",
+    args: [".", "--env=prod"],
   },
 
   /**
    * 加密
-   */  
+   */
   encrypt: {
-    type: 'confusion',
+    type: "confusion",
     files: [
-      'electron/**/*.(js|json)',
-      '!electron/config/encrypt.js',
-      '!electron/config/nodemon.json',
-      '!electron/config/builder.json',
-      '!electron/config/bin.json',
+      "electron/**/*.(js|json)",
+      "!electron/config/encrypt.js",
+      "!electron/config/nodemon.json",
+      "!electron/config/builder.json",
+      "!electron/config/bin.json",
     ],
-    fileExt: ['.js'],
+    fileExt: [".js"],
     confusionOptions: {
-      compact: true,      
+      compact: true,
       stringArray: true,
-      stringArrayEncoding: ['none'],
+      stringArrayEncoding: ["none"],
       deadCodeInjection: false,
-    }
+    },
   },
 
   /**
@@ -116,14 +116,14 @@ module.exports = {
    */
   exec: {
     node_v: {
-      directory: './',
-      cmd: 'node',
-      args: ['-v'],
+      directory: "./",
+      cmd: "node",
+      args: ["-v"],
     },
     npm_v: {
-      directory: './',
-      cmd: 'npm',
-      args: ['-v'],
+      directory: "./",
+      cmd: "npm",
+      args: ["-v"],
     },
-  },  
+  },
 };

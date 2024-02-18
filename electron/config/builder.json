@@ -1,19 +1,12 @@
 {
-  "productName": "ee",
+  "productName": "zzme",
   "appId": "com.electron.ee",
   "copyright": "© 2023 哆啦好梦 Technology Co., Ltd.",
   "directories": {
     "output": "out"
   },
   "asar": true,
-  "files": [
-    "**/*",
-    "!frontend/",
-    "!run/",
-    "!logs/",
-    "!go/",
-    "!data/"
-  ],
+  "files": ["**/*", "!frontend/", "!run/", "!logs/", "!go/", "!data/"],
   "extraResources": {
     "from": "build/extraResources/",
     "to": "extraResources"
@@ -27,7 +20,7 @@
     "installerHeaderIcon": "build/icons/icon.ico",
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "EE框架"
+    "shortcutName": "zzme"
   },
   "mac": {
     "icon": "build/icons/icon.icns",
@@ -47,9 +40,7 @@
   "linux": {
     "icon": "build/icons",
     "artifactName": "${productName}-${os}-${version}-${arch}.${ext}",
-    "target": [
-      "deb"
-    ],
+    "target": ["deb"],
     "category": "Utility"
   }
 }

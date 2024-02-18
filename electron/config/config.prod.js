@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /**
  * 生产环境配置，覆盖 config.default.js
@@ -9,10 +9,11 @@ module.exports = (appInfo) => {
   /**
    * 开发者工具
    */
-  config.openDevTools = {
-    mode: 'undocked'
-  };
+  //   config.openDevTools = {
+  //     mode: "undocked",
+  //   };
 
+  config.openDevTools = false;
   /**
    * 应用程序顶部菜单
    */
@@ -22,10 +23,10 @@ module.exports = (appInfo) => {
    * jobs
    */
   config.jobs = {
-    messageLog: false
-  }; 
+    messageLog: false,
+  };
 
   return {
-    ...config
+    ...config,
   };
 };
