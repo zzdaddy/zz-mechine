@@ -5,7 +5,7 @@ export default {
   translate: {
     menu_100: {
       icon: "profile",
-      title: "软通",
+      title: "T6",
       pageName: "translate-isoftstone",
       params: {},
     },
