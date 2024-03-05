@@ -11,7 +11,7 @@
   "dependencies": {
     "@ant-design/icons-vue": "^6.1.0",
     "ant-design-vue": "2.2.6",
-    "axios": "^0.21.1",
+    "axios": "^0.21.4",
     "socket.io-client": "^4.4.1",
     "store2": "^2.13.2",
     "vue": "^3.2.33",
@@ -27,6 +27,7 @@
     "postcss": "^8.4.13",
     "postcss-pxtorem": "^6.0.0",
     "terser": "^5.19.1",
+    "unocss": "^0.58.5",
     "vite": "^4.4.4",
     "vite-plugin-compression": "^0.5.1"
   }

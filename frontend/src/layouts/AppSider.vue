@@ -7,18 +7,18 @@
       width="100"
     >
       <div class="logo">
-        <img class="pic-logo" src="~@/assets/logo.png">
+        <img class="pic-logo" src="~@/assets/logo.png" />
       </div>
-      <a-menu 
-        class="menu-item" 
-        theme="light" 
+      <a-menu
+        class="menu-item"
+        theme="light"
         mode="inline"
         :selectedKeys="[current]"
         @click="menuHandle"
       >
         <a-menu-item v-for="(menuInfo, index) in menu" :key="index">
           <icon-font :type="menuInfo.icon" />
-          {{ menuInfo.title }} 
+          {{ menuInfo.title }}
         </a-menu-item>
       </a-menu>
     </a-layout-sider>
@@ -30,68 +30,82 @@
   </a-layout>
 </template>
 <script>
-
 export default {
-  name: 'AppSider',
+  name: "AppSider",
   data() {
     return {
       collapsed: true,
-      current: 'menu_1',
+      current: "menu_10",
       menu: {
-        'menu_1' : {
-          icon: 'icon-fengche',
-          title: '框架',
-          pageName: 'Framework',
+        menu_10: {
+          icon: "icon-fengche",
+          title: "翻译",
+          pageName: "Translate",
           params: {
             // test: 'hello'
           },
         },
-        'menu_2' : {
-          icon: 'icon-niudan',
-          title: '系统',
-          pageName: 'Os',
+        menu_11: {
+          icon: "icon-fengche",
+          title: "设置",
+          pageName: "Settings",
+          params: {
+            // test: 'hello'
+          },
+        },
+        menu_1: {
+          icon: "icon-fengche",
+          title: "框架",
+          pageName: "Framework",
+          params: {
+            // test: 'hello'
+          },
+        },
+        menu_2: {
+          icon: "icon-niudan",
+          title: "系统",
+          pageName: "Os",
           params: {},
         },
-        'menu_3' : {
-          icon: 'icon-xiangji',
-          title: '硬件',
-          pageName: 'Hardware',
+        menu_3: {
+          icon: "icon-xiangji",
+          title: "硬件",
+          pageName: "Hardware",
           params: {},
         },
-        'menu_4' : {
-          icon: 'icon-liuxing',
-          title: '特效',
-          pageName: 'Effect',
+        menu_4: {
+          icon: "icon-liuxing",
+          title: "特效",
+          pageName: "Effect",
           params: {},
-        },   
-        'menu_5' : {
-          icon: 'icon-gouwu',
-          title: 'cross',
-          pageName: 'Cross',
+        },
+        menu_5: {
+          icon: "icon-gouwu",
+          title: "cross",
+          pageName: "Cross",
           params: {},
-        },          
-      }
+        },
+      },
     };
   },
-  created () {
-  },
-  mounted () {
-    this.menuHandle()
+  created() {},
+  mounted() {
+    this.menuHandle();
   },
   methods: {
-    menuHandle (e) {
-      console.log('sider menu e:', e);
+    menuHandle(e) {
+      console.log("sider menu e:", e);
       this.current = e ? e.key : this.current;
-      console.log('sider menu current:', this.current);
+      console.log("sider menu current:", this.current);
 
-      const linkInfo = this.menu[this.current]
-      console.log('[home] load linkInfo:', linkInfo);
-      this.$router.push({ name: linkInfo.pageName, params: linkInfo.params})
+      const linkInfo = this.menu[this.current];
+      console.log("[home] load linkInfo:", linkInfo);
+      this.$router.push({ name: linkInfo.pageName, params: linkInfo.params });
     },
     changeMenu(e) {
-      console.log('sider menu e:', e);
+      console.log("sider menu e:", e);
       //this.current = e.key;
-    }
+    },
   },
 };
 </script>

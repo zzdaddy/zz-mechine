@@ -1,109 +1,102 @@
-'use strict';
+"use strict";
 
-const { Service } = require('ee-core');
-const Storage = require('ee-core/storage');
-const _ = require('lodash');
-const path = require('path');
+const { Service } = require("ee-core");
+const Storage = require("ee-core/storage");
+const _ = require("lodash");
+const path = require("path");
 
 /**
  * json数据存储
  * @class
  */
 class JsondbService extends Service {
-
-  constructor (ctx) {
+  constructor(ctx) {
     super(ctx);
 
     // jsondb数据库
-    this.jsonFile = 'demo';
-    this.demoDB = Storage.connection(this.jsonFile);  
+    this.jsonFile = "zzstudio";
+    this.demoDB = Storage.connection(this.jsonFile);
     this.demoDBKey = {
-      test_data: 'test_data'
+      translate: "translate",
+      translate2: "translate2",
     };
   }
 
   /*
-   * 增 Test data
+   * 新增配置（指初始化）
    */
-  async addTestData(user) {
-    const key = this.demoDBKey.test_data;
-    if (!this.demoDB.db.has(key).value()) {
-      this.demoDB.db.set(key, []).write();
-    }
-    
-    const data = this.demoDB.db
-    .get(key)
-    .push(user)
-    .write();
+  async updateTestData(configData, configName = "translate") {
+    const key = this.demoDBKey[configName];
 
+    if (!this.demoDB.db.has(key).value()) {
+      this.demoDB.db.set(key, {}).write();
+    }
+    const data = this.demoDB.db.set(configName, configData).write();
     return data;
   }
 
   /*
    * 删 Test data
    */
-  async delTestData(name = '') {
-    const key = this.demoDBKey.test_data;
-    const data = this.demoDB.db
-    .get(key)
-    .remove({name: name})
-    .write();
+  async delTestData(name = "", configName = "translate") {
+    // const key = this.demoDBKey.translate;
+    const key = this.demoDBKey[configName];
+    const data = this.demoDB.db.get(key).remove({ name: name }).write();
 
     return data;
   }
 
   /*
-   * 改 Test data
+   * 修改配置文件
    */
-  async updateTestData(name= '', age = 0) {
-    const key = this.demoDBKey.test_data;
-    const data = this.demoDB.db
-    .get(key)
-    .find({name: name}) // 修改找到的第一个数据，貌似无法批量修改 todo
-    .assign({age: age})
-    .write();
+  //   async updateTestData(updateData, configName = "translate") {
+  //     // const key = this.demoDBKey.translate;
+  //     const key = this.demoDBKey[configName];
+  //     const data = this.demoDB.db
+  //       .get(key)
+  //       .assign({ ...updateData })
+  //       .write();
 
-    return data;
-  }
+  //     return data;
+  //   }
 
   /*
    * 查 Test data
    */
-  async getTestData(age = 0) {
-    const key = this.demoDBKey.test_data;
+  async getTestData(age = 0, configName = "translate") {
+    // const key = this.demoDBKey.translate;
+    const key = this.demoDBKey[configName];
     let data = this.demoDB.db
-    .get(key)
-    //.find({age: age}) 查找单个
-    .filter(function(o) {
-      let isHas = true;
-      isHas = age === o.age ? true : false;
-      return isHas;
-    })
-    //.orderBy(['age'], ['name']) 排序
-    //.slice(0, 10) 分页
-    .value();
+      .get(key)
+      //.find({age: age}) 查找单个
+      .filter(function (o) {
+        let isHas = true;
+        isHas = age === o.age ? true : false;
+        return isHas;
+      })
+      //.orderBy(['age'], ['name']) 排序
+      //.slice(0, 10) 分页
+      .value();
 
     if (_.isEmpty(data)) {
-      data = []
+      data = [];
     }
 
     return data;
   }
 
   /*
-   * all Test data
+   * 获取全部配置信息
    */
-  async getAllTestData() {
-    const key = this.demoDBKey.test_data;
+  async getAllConfig(configName = "translate") {
+    const key = this.demoDBKey[configName];
     if (!this.demoDB.db.has(key).value()) {
-      this.demoDB.db.set(key, []).write();
+      this.demoDB.db.set(key, {}).write();
     }
-    let data = this.demoDB.db
-    .get(key)
-    .value();
+    let data = this.demoDB.db.get(key).value();
 
     if (_.isEmpty(data)) {
-      data = []
+      data = {};
     }
 
     return data;
@@ -113,10 +106,10 @@ class JsondbService extends Service {
    * get data dir (sqlite)
    */
   async getDataDir() {
-    const dir = this.demoDB.getStorageDir();    
+    const dir = this.demoDB.getStorageDir();
 
     return dir;
-  } 
+  }
 
   /*
    * set custom data dir (sqlite)
@@ -128,11 +121,11 @@ class JsondbService extends Service {
 
     // the absolute path of the db file
     const dbFile = path.join(dir, this.jsonFile);
-    this.demoDB = Storage.connection(dbFile);    
+    this.demoDB = Storage.connection(dbFile);
 
     return;
-  }  
+  }
 }
 
-JsondbService.toString = () => '[class JsondbService]';
+JsondbService.toString = () => "[class JsondbService]";
 module.exports = JsondbService;

@@ -1,17 +1,17 @@
-'use strict';
+"use strict";
 
-const { Service } = require('ee-core');
-const Log = require('ee-core/log');
-const { ChildJob, ChildPoolJob } = require('ee-core/jobs');
-const HttpClient = require('ee-core/httpclient');
-const Ps = require('ee-core/ps');
+const { Service } = require("ee-core");
+const Log = require("ee-core/log");
+const { ChildJob, ChildPoolJob } = require("ee-core/jobs");
+const HttpClient = require("ee-core/httpclient");
+const Ps = require("ee-core/ps");
+const Services = require("ee-core/services");
 
 /**
  * framework
  * @class
  */
 class FrameworkService extends Service {
-
   constructor(ctx) {
     super(ctx);
 
@@ -27,10 +27,10 @@ class FrameworkService extends Service {
    */
   async test(args) {
     let obj = {
-      status:'ok',
-      params: args
-    }
-    Log.info('FrameworkService obj:', obj);
+      status: "ok",
+      params: args,
+    };
+    Log.info("FrameworkService obj:", obj);
     return obj;
   }
 
@@ -39,43 +39,49 @@ class FrameworkService extends Service {
    */
   bothWayMessage(type, content, event) {
     // 前端ipc频道 channel
-    const channel = 'controller.framework.ipcSendMsg';
+    const channel = "controller.framework.ipcSendMsg";
 
-    if (type == 'start') {
+    if (type == "start") {
       // 每隔1秒，向前端页面发送消息
       // 用定时器模拟
-      this.myTimer = setInterval(function(e, c, msg) {
-        let timeNow = Date.now();
-        let data = msg + ':' + timeNow;
-        e.reply(`${c}`, data)
-      }, 1000, event, channel, content)
+      this.myTimer = setInterval(
+        function (e, c, msg) {
+          let timeNow = Date.now();
+          let data = msg + ":" + timeNow;
+          e.reply(`${c}`, data);
+        },
+        1000,
+        event,
+        channel,
+        content
+      );
 
-      return '开始了'
-    } else if (type == 'end') {
+      return "开始了";
+    } else if (type == "end") {
       clearInterval(this.myTimer);
-      return '停止了'    
+      return "停止了";
     } else {
-      return 'ohther'
+      return "ohther";
     }
   }
 
   /**
    * 执行任务
-   */ 
+   */
   doJob(jobId, action, event) {
     let res = {};
     let oneTask;
-    const channel = 'controller.framework.timerJobProgress';
-    if (action == 'create') {
+    const channel = "controller.framework.timerJobProgress";
+    if (action == "create") {
       // 执行任务及监听进度
-      let eventName = 'job-timer-progress-' + jobId;
-      const timerTask = this.myJob.exec('./jobs/example/timer', {jobId});
+      let eventName = "job-timer-progress-" + jobId;
+      const timerTask = this.myJob.exec("./jobs/example/timer", { jobId });
       timerTask.emitter.on(eventName, (data) => {
-        Log.info('[main-process] timerTask, from TimerJob data:', data);
+        Log.info("[main-process] timerTask, from TimerJob data:", data);
         // 发送数据到渲染进程
-        event.sender.send(`${channel}`, data)
-      })
-    
+        event.sender.send(`${channel}`, data);
+      });
+
       // 执行任务及监听进度 异步
       // myjob.execPromise('./jobs/example/timer', {jobId}).then(task => {
       //   task.emitter.on(eventName, (data) => {
@@ -85,69 +91,203 @@ class FrameworkService extends Service {
       //   })
       // });
 
-      res.pid = timerTask.pid; 
+      res.pid = timerTask.pid;
       this.taskForJob[jobId] = timerTask;
     }
-    if (action == 'close') {
+    if (action == "close") {
       oneTask = this.taskForJob[jobId];
       oneTask.kill();
-      event.sender.send(`${channel}`, {jobId, number:0, pid:0});
-    }    
+      event.sender.send(`${channel}`, { jobId, number: 0, pid: 0 });
+    }
+
+    return res;
+  }
+  /**
+   * 执行检索文件任务
+   */
+  async doFileSearchJob(jobId, action, dirPath, event) {
+    let res = {};
+    let oneTask;
+    if (this.taskForJob[jobId]) {
+      console.log(`已存在 jobid 为${jobId}的任务`);
+      return;
+    }
+    const channel = "controller.framework.fileSearchJobProgress";
+    if (action == "create") {
+      let configName = "translate";
+      const translateConfig =
+        await Services.get("database.jsondb").getAllConfig(configName);
+      // 执行任务及监听进度
+      let eventName = "job-file-search-progress-" + jobId;
+      const timerTask = this.myJob.exec("./jobs/translate/fileSearch", {
+        jobId,
+        translateConfig,
+        dirPath,
+      });
+      timerTask.emitter.on(eventName, (data) => {
+        Log.info("[main-process] timerTask, from FileSearchJob data:", data);
+        // 发送数据到渲染进程
+        event.sender.send(`${channel}`, data);
+        if (data.end) {
+          oneTask = this.taskForJob[jobId];
+          oneTask.kill();
+          event.sender.send(`${channel}`, {
+            jobId,
+            action: "kill",
+            number: 0,
+            pid: 0,
+          });
+          this.taskForJob[jobId] = null;
+        }
+      });
+
+      // 执行任务及监听进度 异步
+      // myjob.execPromise('./jobs/example/timer', {jobId}).then(task => {
+      //   task.emitter.on(eventName, (data) => {
+      //     Log.info('[main-process] timerTask, from TimerJob data:', data);
+      //     // 发送数据到渲染进程
+      //     event.sender.send(`${channel}`, data)
+      //   })
+      // });
+
+      res.pid = timerTask.pid;
+      this.taskForJob[jobId] = timerTask;
+    }
+    if (action == "close") {
+      oneTask = this.taskForJob[jobId];
+      oneTask.kill();
+      event.sender.send(`${channel}`, { jobId, number: 0, pid: 0 });
+    }
+
+    return res;
+  }
+
+  /**
+   * 执行翻译任务
+   */
+  async doTranslateJob(jobId, action, data, event) {
+    let res = {};
+    let oneTask;
+    console.log(`service: translate start`);
+    if (this.taskForJob[jobId]) {
+      console.log(`已存在 jobid 为${jobId}的任务, 清除之前的任务`);
+      oneTask = this.taskForJob[jobId];
+      oneTask.kill();
+      event.sender.send(`${channel}`, { jobId, number: 0, pid: 0 });
+    }
+    const channel = "controller.framework.fileTranslateJobProgress";
+    if (action == "create") {
+      let configName = "translate";
+      const translateConfig =
+        await Services.get("database.jsondb").getAllConfig(configName);
+      // 执行任务及监听进度
+      let eventName = "job-translate-progress-" + jobId;
+      const timerTask = this.myJob.exec("./jobs/translate/start", {
+        jobId,
+        translateConfig,
+        data,
+      });
+      timerTask.emitter.on(eventName, (data) => {
+        Log.info("[main-process] timerTask, from TranslateJob data:", data);
+        // 发送数据到渲染进程
+        event.sender.send(`${channel}`, data);
+        if (data.end) {
+          oneTask = this.taskForJob[jobId];
+          oneTask.kill();
+          event.sender.send(`${channel}`, {
+            jobId,
+            action: "kill",
+            number: 0,
+            pid: 0,
+          });
+          this.taskForJob[jobId] = null;
+        }
+      });
+
+      // 执行任务及监听进度 异步
+      // myjob.execPromise('./jobs/example/timer', {jobId}).then(task => {
+      //   task.emitter.on(eventName, (data) => {
+      //     Log.info('[main-process] timerTask, from TimerJob data:', data);
+      //     // 发送数据到渲染进程
+      //     event.sender.send(`${channel}`, data)
+      //   })
+      // });
+
+      res.pid = timerTask.pid;
+      this.taskForJob[jobId] = timerTask;
+    }
+    if (action == "close") {
+      if (jobId === "all") {
+        for (let key in this.taskForJob) {
+          this.taskForJob[key].kill();
+        }
+      } else {
+        oneTask = this.taskForJob[jobId];
+        oneTask.kill();
+        event.sender.send(`${channel}`, { jobId, number: 0, pid: 0 });
+      }
+    }
 
     return res;
   }
 
   /**
    * 创建pool
-   */ 
+   */
   doCreatePool(num, event) {
-    const channel = 'controller.framework.createPoolNotice';
-    this.myJobPool.create(num).then(pids => {
+    const channel = "controller.framework.createPoolNotice";
+    this.myJobPool.create(num).then((pids) => {
       event.reply(`${channel}`, pids);
     });
   }
 
   /**
    * 通过进程池执行任务
-   */ 
+   */
   doJobByPool(jobId, action, event) {
     let res = {};
-    const channel = 'controller.framework.timerJobProgress';
-    if (action == 'run') {
+    const channel = "controller.framework.timerJobProgress";
+    if (action == "run") {
       // 异步-执行任务及监听进度
-      this.myJobPool.runPromise('./jobs/example/timer', {jobId}).then(task => {
+      this.myJobPool
+        .runPromise("./jobs/example/timer", { jobId })
+        .then((task) => {
+          // 监听器名称唯一，否则会出现重复监听。
+          // 任务完成时，需要移除监听器，防止内存泄漏
+          let eventName = "job-timer-progress-" + jobId;
+          task.emitter.on(eventName, (data) => {
+            Log.info(
+              "[main-process] [ChildPoolJob] timerTask, from TimerJob data:",
+              data
+            );
 
-        // 监听器名称唯一，否则会出现重复监听。
-        // 任务完成时，需要移除监听器，防止内存泄漏
-        let eventName = 'job-timer-progress-' + jobId;
-        task.emitter.on(eventName, (data) => {
-          Log.info('[main-process] [ChildPoolJob] timerTask, from TimerJob data:', data);
-  
-          // 发送数据到渲染进程
-          event.sender.send(`${channel}`, data)
+            // 发送数据到渲染进程
+            event.sender.send(`${channel}`, data);
 
-          // 如果收到任务完成的消息，移除监听器
-          if (data.end) {
-            task.emitter.removeAllListeners(eventName);
-          }
+            // 如果收到任务完成的消息，移除监听器
+            if (data.end) {
+              task.emitter.removeAllListeners(eventName);
+            }
+          });
+
+          res.pid = task.pid;
         });
-
-        res.pid = task.pid; 
-      });
     }
     return res;
   }
 
   /**
-   * test 
-   */ 
+   * test
+   */
   monitorJob() {
     setInterval(() => {
       let jobPids = this.myJob.getPids();
       let jobPoolPids = this.myJobPool.getPids();
-      Log.info(`[main-process] [monitorJob] jobPids: ${jobPids}, jobPoolPids: ${jobPoolPids}`);
-    }, 5000)
-  }  
+      Log.info(
+        `[main-process] [monitorJob] jobPids: ${jobPids}, jobPoolPids: ${jobPoolPids}`
+      );
+    }, 5000);
+  }
 
   /**
    * 上传到smms
@@ -155,41 +295,46 @@ class FrameworkService extends Service {
   async uploadFileToSMMS(tmpFile) {
     const res = {
       code: 1000,
-      message: 'unknown error',
+      message: "unknown error",
     };
 
     try {
       const headersObj = {
-        'Content-Type': 'multipart/form-data',
-        'Authorization': 'aaaaaaaaaaaaa' // 请修改这个token，用你自己的账号token
+        "Content-Type": "multipart/form-data",
+        Authorization: "aaaaaaaaaaaaa", // 请修改这个token，用你自己的账号token
       };
-      const url = 'https://sm.ms/api/v2/upload';
+      const url = "https://sm.ms/api/v2/upload";
       const hc = new HttpClient();
       const response = await hc.request(url, {
-        method: 'POST',
+        method: "POST",
         headers: headersObj,
         files: {
           smfile: tmpFile,
         },
-        dataType: 'json',
+        dataType: "json",
         timeout: 15000,
       });
       const result = response.data;
       if (Ps.isDev()) {
-        Log.info('[FrameworkService] [uploadFileToSMMS]: info result:%j', result);
+        Log.info(
+          "[FrameworkService] [uploadFileToSMMS]: info result:%j",
+          result
+        );
       }
-      if (result.code !== 'success') {
-        Log.error('[FrameworkService] [uploadFileToSMMS]: res error result:%j', result);
+      if (result.code !== "success") {
+        Log.error(
+          "[FrameworkService] [uploadFileToSMMS]: res error result:%j",
+          result
+        );
       }
       return result;
     } catch (e) {
-      Log.error('[FrameworkService] [uploadFileToSMMS]:  ERROR ', e);
+      Log.error("[FrameworkService] [uploadFileToSMMS]:  ERROR ", e);
     }
 
     return res;
   }
-
 }
 
-FrameworkService.toString = () => '[class FrameworkService]';
-module.exports = FrameworkService;  
+FrameworkService.toString = () => "[class FrameworkService]";
+module.exports = FrameworkService;

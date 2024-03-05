@@ -1,23 +1,27 @@
-'use strict';
+"use strict";
 
-const _ = require('lodash');
-const path = require('path');
-const { Controller } = require('ee-core');
+const _ = require("lodash");
+const path = require("path");
+const { Controller } = require("ee-core");
 const {
-  app: electronApp, dialog, shell, Notification, 
-  powerMonitor, screen, nativeTheme
-} = require('electron');
-const Conf = require('ee-core/config');
-const Ps = require('ee-core/ps');
-const Services = require('ee-core/services');
-const Addon = require('ee-core/addon');
+  app: electronApp,
+  dialog,
+  shell,
+  Notification,
+  powerMonitor,
+  screen,
+  nativeTheme,
+} = require("electron");
+const Conf = require("ee-core/config");
+const Ps = require("ee-core/ps");
+const Services = require("ee-core/services");
+const Addon = require("ee-core/addon");
 
 /**
  * 操作系统 - 功能demo
  * @class
  */
 class OsController extends Controller {
-
   constructor(ctx) {
     super(ctx);
   }
@@ -31,15 +35,11 @@ class OsController extends Controller {
   /**
    * 消息提示对话框
    */
-  messageShow() {
-    dialog.showMessageBoxSync({
-      type: 'info', // "none", "info", "error", "question" 或者 "warning"
-      title: '自定义标题-message',
-      message: '自定义消息内容',
-      detail: '其它的额外信息'
-    })
-  
-    return '打开了消息框';
+  messageShow(params) {
+    console.log(`消息参数`, params);
+    dialog.showMessageBoxSync(params);
+
+    return "打开了消息框";
   }
 
   /**
@@ -47,16 +47,16 @@ class OsController extends Controller {
    */
   messageShowConfirm() {
     const res = dialog.showMessageBoxSync({
-      type: 'info',
-      title: '自定义标题-message',
-      message: '自定义消息内容',
-      detail: '其它的额外信息',
+      type: "info",
+      title: "自定义标题-message",
+      message: "自定义消息内容",
+      detail: "其它的额外信息",
       cancelId: 1, // 用于取消对话框的按钮的索引
       defaultId: 0, // 设置默认选中的按钮
-      buttons: ['确认', '取消'], // 按钮及索引
-    })
-    let data = (res === 0) ? '点击确认按钮' : '点击取消按钮';
-  
+      buttons: ["确认", "取消"], // 按钮及索引
+    });
+    let data = res === 0 ? "点击确认按钮" : "点击取消按钮";
+
     return data;
   }
 
@@ -65,15 +65,15 @@ class OsController extends Controller {
    */
   selectFolder() {
     const filePaths = dialog.showOpenDialogSync({
-      properties: ['openDirectory', 'createDirectory']
+      properties: ["openDirectory", "createDirectory"],
     });
 
     if (_.isEmpty(filePaths)) {
-      return null
+      return null;
     }
 
     return filePaths[0];
-  } 
+  }
 
   /**
    * 打开目录
@@ -82,7 +82,7 @@ class OsController extends Controller {
     if (!args.id) {
       return false;
     }
-    let dir = '';
+    let dir = "";
     if (path.isAbsolute(args.id)) {
       dir = args.id;
     } else {
@@ -98,18 +98,16 @@ class OsController extends Controller {
    */
   selectPic() {
     const filePaths = dialog.showOpenDialogSync({
-      title: 'select pic',
-      properties: ['openFile'],
-      filters: [
-        { name: 'Images', extensions: ['jpg', 'png', 'gif'] },
-      ]
+      title: "select pic",
+      properties: ["openFile"],
+      filters: [{ name: "Images", extensions: ["jpg", "png", "gif"] }],
     });
     if (_.isEmpty(filePaths)) {
-      return null
+      return null;
     }
 
     return filePaths[0];
-  }   
+  }
 
   /**
    * 加载视图内容
@@ -117,22 +115,22 @@ class OsController extends Controller {
   loadViewContent(args) {
     const { type, content } = args;
     let contentUrl = content;
-    if (type == 'html') {
-      contentUrl = path.join('file://', electronApp.getAppPath(), content);
+    if (type == "html") {
+      contentUrl = path.join("file://", electronApp.getAppPath(), content);
     }
 
-    Services.get('os').createBrowserView(contentUrl);
+    Services.get("os").createBrowserView(contentUrl);
 
-    return true
+    return true;
   }
 
   /**
    * 移除视图内容
    */
   removeViewContent() {
-    Services.get('os').removeBrowserView();
-    return true
-  }  
+    Services.get("os").removeBrowserView();
+    return true;
+  }
 
   /**
    * 打开新窗口
@@ -140,18 +138,20 @@ class OsController extends Controller {
   createWindow(args) {
     const { type, content, windowName, windowTitle } = args;
     let contentUrl = null;
-    if (type == 'html') {
-      contentUrl = path.join('file://', electronApp.getAppPath(), content)
-    } else if (type == 'web') {
+    if (type == "html") {
+      contentUrl = path.join("file://", electronApp.getAppPath(), content);
+    } else if (type == "web") {
       contentUrl = content;
-    } else if (type == 'vue') {
-      let addr = 'http://localhost:8080'
+    } else if (type == "vue") {
+      let addr = "http://localhost:8080";
       if (Ps.isProd()) {
-        const mainServer = Conf.getValue('mainServer');
+        const mainServer = Conf.getValue("mainServer");
         if (Conf.isFileProtocol(mainServer)) {
-          addr = mainServer.protocol + path.join(Ps.getHomeDir(), mainServer.indexPath);
+          addr =
+            mainServer.protocol +
+            path.join(Ps.getHomeDir(), mainServer.indexPath);
         } else {
-          addr = mainServer.protocol + mainServer.host + ':' + mainServer.port;
+          addr = mainServer.protocol + mainServer.host + ":" + mainServer.port;
         }
       }
 
@@ -160,11 +160,11 @@ class OsController extends Controller {
       // some
     }
 
-    console.log('contentUrl: ', contentUrl);
+    console.log("contentUrl: ", contentUrl);
     let opt = {
-      title: windowTitle
-    }
-    const win = Addon.get('window').create(windowName, opt);
+      title: windowTitle,
+    };
+    const win = Addon.get("window").create(windowName, opt);
     const winContentsId = win.webContents.id;
 
     // load page
@@ -172,14 +172,14 @@ class OsController extends Controller {
 
     return winContentsId;
   }
-  
+
   /**
    * 获取窗口contents id
    */
   getWCid(args) {
     // 主窗口的name默认是main，其它窗口name开发者自己定义
     const name = args;
-    const id = Addon.get('window').getWCid(name);
+    const id = Addon.get("window").getWCid(name);
 
     return id;
   }
@@ -197,7 +197,7 @@ class OsController extends Controller {
   //   const extensionDir = path.join(chromeExtensionDir, extensionId);
 
   //   Log.info("[api] [example] [loadExtension] extension id:", extensionId);
-  //   unzip(crxFile, extensionDir).then(() => {    
+  //   unzip(crxFile, extensionDir).then(() => {
   //     Log.info("[api] [example] [loadExtension] unzip success!");
   //     chromeExtension.load(extensionId);
   //   });
@@ -209,10 +209,10 @@ class OsController extends Controller {
    * 创建系统通知
    */
   sendNotification(args, event) {
-    const { title, subtitle, body, silent} = args;
+    const { title, subtitle, body, silent } = args;
 
     if (!Notification.isSupported()) {
-      return '当前系统不支持通知';
+      return "当前系统不支持通知";
     }
 
     let options = {};
@@ -229,50 +229,50 @@ class OsController extends Controller {
       options.silent = silent;
     }
 
-    Services.get('os').createNotification(options, event);
+    Services.get("os").createNotification(options, event);
 
-    return true
-  }  
+    return true;
+  }
 
   /**
    * 电源监控
    */
   initPowerMonitor(args, event) {
-    const channel = 'controller.os.initPowerMonitor';
-    powerMonitor.on('on-ac', (e) => {
+    const channel = "controller.os.initPowerMonitor";
+    powerMonitor.on("on-ac", (e) => {
       let data = {
-        type: 'on-ac',
-        msg: '接入了电源'
-      }
-      event.reply(`${channel}`, data)
+        type: "on-ac",
+        msg: "接入了电源",
+      };
+      event.reply(`${channel}`, data);
     });
 
-    powerMonitor.on('on-battery', (e) => {
+    powerMonitor.on("on-battery", (e) => {
       let data = {
-        type: 'on-battery',
-        msg: '使用电池中'
-      }
-      event.reply(`${channel}`, data)
+        type: "on-battery",
+        msg: "使用电池中",
+      };
+      event.reply(`${channel}`, data);
     });
 
-    powerMonitor.on('lock-screen', (e) => {
+    powerMonitor.on("lock-screen", (e) => {
       let data = {
-        type: 'lock-screen',
-        msg: '锁屏了'
-      }
-      event.reply(`${channel}`, data)
+        type: "lock-screen",
+        msg: "锁屏了",
+      };
+      event.reply(`${channel}`, data);
     });
 
-    powerMonitor.on('unlock-screen', (e) => {
+    powerMonitor.on("unlock-screen", (e) => {
       let data = {
-        type: 'unlock-screen',
-        msg: '解锁了'
-      }
-      event.reply(`${channel}`, data)
+        type: "unlock-screen",
+        msg: "解锁了",
+      };
+      event.reply(`${channel}`, data);
     });
 
-    return true
-  }  
+    return true;
+  }
 
   /**
    * 获取屏幕信息
@@ -284,15 +284,15 @@ class OsController extends Controller {
       let res = screen.getCursorScreenPoint();
       data = [
         {
-          title: '横坐标',
-          desc: res.x
+          title: "横坐标",
+          desc: res.x,
         },
         {
-          title: '纵坐标',
-          desc: res.y
+          title: "纵坐标",
+          desc: res.y,
         },
-      ]
-      
+      ];
+
       return data;
     }
     if (args == 1) {
@@ -306,34 +306,34 @@ class OsController extends Controller {
     // Log.info('[electron] [ipc] [example] [getScreen] res:', res);
     data = [
       {
-        title: '分辨率',
-        desc: res.bounds.width + ' x ' + res.bounds.height
+        title: "分辨率",
+        desc: res.bounds.width + " x " + res.bounds.height,
       },
       {
-        title: '单色显示器',
-        desc: res.monochrome ? '是' : '否'
+        title: "单色显示器",
+        desc: res.monochrome ? "是" : "否",
       },
       {
-        title: '色深',
-        desc: res. colorDepth
+        title: "色深",
+        desc: res.colorDepth,
       },
       {
-        title: '色域',
-        desc: res.colorSpace
+        title: "色域",
+        desc: res.colorSpace,
       },
       {
-        title: 'scaleFactor',
-        desc: res.scaleFactor
+        title: "scaleFactor",
+        desc: res.scaleFactor,
       },
       {
-        title: '加速器',
-        desc: res.accelerometerSupport
+        title: "加速器",
+        desc: res.accelerometerSupport,
       },
       {
-        title: '触控',
-        desc: res.touchSupport == 'unknown' ? '不支持' : '支持'
+        title: "触控",
+        desc: res.touchSupport == "unknown" ? "不支持" : "支持",
       },
-    ]
+    ];
 
     return data;
   }
@@ -342,11 +342,11 @@ class OsController extends Controller {
    * 获取系统主题
    */
   getTheme() {
-    let theme = 'system';
+    let theme = "system";
     if (nativeTheme.shouldUseHighContrastColors) {
-      theme = 'light';
+      theme = "light";
     } else if (nativeTheme.shouldUseInvertedColorScheme) {
-      theme = 'dark';
+      theme = "dark";
     }
 
     return theme;
@@ -356,13 +356,12 @@ class OsController extends Controller {
    * 设置系统主题
    */
   setTheme(args) {
-
     // TODO 好像没有什么明显效果
     nativeTheme.themeSource = args;
 
     return args;
-  }  
+  }
 }
 
-OsController.toString = () => '[class OsController]';
+OsController.toString = () => "[class OsController]";
 module.exports = OsController;
